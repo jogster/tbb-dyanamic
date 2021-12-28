@@ -17,6 +17,7 @@
     <ClCompile Include="pipeline_factory.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DLLMacro.h" />
     <ClInclude Include="func-wrappers.h" />
     <ClInclude Include="join_node.h" />
     <ClInclude Include="pipeline_parser.h" />
@@ -86,8 +87,9 @@
         <SubSystem>Windows</SubSystem>
         <GenerateDebugInformation>true</GenerateDebugInformation>
       </Link>
-      <AdditionalLibraryDirectories>C:\Users\dahub\source\repos\dynamic-pipelines\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>test-filter.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -102,8 +104,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\dahub\source\repos\dynamic-pipelines\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>test-filter.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

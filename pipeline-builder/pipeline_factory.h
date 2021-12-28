@@ -7,7 +7,7 @@
 
 //custom includes
 #include "pipeline_impl.h"
-#include "../test-filter/DLLMacro.h"
+#include "DLLMacro.h"
 #include "func-wrappers.h"
 
 class DPCPP_DLL_API pipeline_factory
