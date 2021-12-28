@@ -1,0 +1,73 @@
+pipelines :
+    bmode_pipeline :
+        nodes :
+            node_1:
+                #gets the transform object from a factory will determine the ports
+                #and name at runtime
+                #if you create a node with a function with no inputs it will
+                #be created with a source node and will be called repeatedly
+                type : input_node
+                transform :  "source_1"
+                concurrency : 1 #serial would be ignored in this case as it is a source
+                input_ports : []
+                output_ports : [source_1_output] #sources have no input ports
+            node_2 :
+                type : function_node
+                transform : transform_1
+                concurrency : 0 #infinite
+                input_ports : [node_2_input]
+                output_ports : [node_2_output]
+            node_3 :
+                type : sink_node
+                transform : sink_1 # we allow nexted pipelines
+                concurrency : 1 #serial
+                input_ports : [node_3_input]
+                output_ports : []
+            # node_4 :
+                # type : function_node
+                # transform : transform_3
+                # concurrency : 1 #serial
+                # input_ports : [node_4_input]
+                # output_ports : [node_4_output]
+            # node_5 :
+                # type : sink_node
+                # transform : sink_func
+                # concurrency : 1 #serial
+                # input_ports : [node_5_input]
+            # node_6:
+                # type : join_node
+                # input_ports : [node_6_input_0, node_6_input_1]
+                # output_ports : [node_6_output]
+                
+        edges :
+            #Sequencial connection
+            edge_1 :
+                start : source_1_output
+                end : node_2_input
+            #trigger nodes 3 and 4 from 2
+            edge_2 :
+                start : node_2_output
+                end : node_3_input
+            # edge_3 :
+                # parent : node_2_output
+                # child : node_4_input
+            # edge_4 :
+                # parent : node_4_output
+                # child : node_6_input_0
+            # edge_5 :
+                # parent : node_3_output
+                # child : node_6_input_1
+            # edge_6 :
+                # parent : node_6_output
+                # child : node_5_input
+            
+            #will have to write a dyanmic splitting node for dyanamic
+            #splitting of data into different streams
+            #we can write generic export functions here... Maybe overlap
+            #avro??? How cool would that be?
+    doppler_pipeline :
+        status : "unimplemented"
+    angiography_pipeline :
+        status : "unimplemented"
+    cmode_pipeline : 
+        status : "unimplemented"

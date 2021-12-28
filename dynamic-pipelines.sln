@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31911.196
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dynamic-pipelines-test", "dynamic-pipelines\dynamic-pipelines.vcxproj", "{B33AE368-4006-4B77-BC84-859CF5A059E2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{589A31C2-C04F-43A1-97B3-8D027CB40859} = {589A31C2-C04F-43A1-97B3-8D027CB40859}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test-filter", "test-filter\test-filter.vcxproj", "{589A31C2-C04F-43A1-97B3-8D027CB40859}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pipeline-builder", "pipeline-builder\pipeline-builder.vcxproj", "{66C0C208-E172-4ACC-9768-1BE8CDD14247}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pipeline-builder-test", "pipeline-builder-test\pipeline-builder-test.vcxproj", "{6E47351C-AA41-441F-B011-81F7E4A8E43E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{66C0C208-E172-4ACC-9768-1BE8CDD14247} = {66C0C208-E172-4ACC-9768-1BE8CDD14247}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B33AE368-4006-4B77-BC84-859CF5A059E2}.Debug|x64.ActiveCfg = Debug|x64
+		{B33AE368-4006-4B77-BC84-859CF5A059E2}.Debug|x64.Build.0 = Debug|x64
+		{B33AE368-4006-4B77-BC84-859CF5A059E2}.Release|x64.ActiveCfg = Release|x64
+		{B33AE368-4006-4B77-BC84-859CF5A059E2}.Release|x64.Build.0 = Release|x64
+		{589A31C2-C04F-43A1-97B3-8D027CB40859}.Debug|x64.ActiveCfg = Debug|x64
+		{589A31C2-C04F-43A1-97B3-8D027CB40859}.Debug|x64.Build.0 = Debug|x64
+		{589A31C2-C04F-43A1-97B3-8D027CB40859}.Release|x64.ActiveCfg = Release|x64
+		{589A31C2-C04F-43A1-97B3-8D027CB40859}.Release|x64.Build.0 = Release|x64
+		{66C0C208-E172-4ACC-9768-1BE8CDD14247}.Debug|x64.ActiveCfg = Debug|x64
+		{66C0C208-E172-4ACC-9768-1BE8CDD14247}.Debug|x64.Build.0 = Debug|x64
+		{66C0C208-E172-4ACC-9768-1BE8CDD14247}.Release|x64.ActiveCfg = Release|x64
+		{66C0C208-E172-4ACC-9768-1BE8CDD14247}.Release|x64.Build.0 = Release|x64
+		{6E47351C-AA41-441F-B011-81F7E4A8E43E}.Debug|x64.ActiveCfg = Debug|x64
+		{6E47351C-AA41-441F-B011-81F7E4A8E43E}.Debug|x64.Build.0 = Debug|x64
+		{6E47351C-AA41-441F-B011-81F7E4A8E43E}.Release|x64.ActiveCfg = Release|x64
+		{6E47351C-AA41-441F-B011-81F7E4A8E43E}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {11A6ABE1-843A-4D62-AA40-146C5AEC9884}
+	EndGlobalSection
+EndGlobal

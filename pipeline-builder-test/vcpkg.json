@@ -1,0 +1,9 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "name": "pipeline-builder",
+  "version": "0.15.2",
+  "dependencies": [
+    "yaml-cpp",
+    "gtest"
+  ]
+}

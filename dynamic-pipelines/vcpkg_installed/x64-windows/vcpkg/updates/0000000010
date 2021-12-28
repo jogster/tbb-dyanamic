@@ -1,0 +1,9 @@
+Package: xtensor
+Version: 0.23.10
+Depends: nlohmann-json, xtl
+Architecture: x64-windows
+Multi-Arch: same
+Abi: d5eb9af44a6d886d24d4f91a832caad41b8daa95b7e992985699271a0e3fbfdd
+Description: C++ tensors with broadcasting and lazy computing
+Type: Port
+Status: install ok half-installed
