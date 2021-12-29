@@ -1,4 +1,5 @@
 #include "pipeline_impl.h"
+#include "join_node.h"
 
 template<typename T1, typename T2>
 void connect_edges(std::string start, std::string end, T1 start_nodes, T2 end_nodes)
@@ -61,6 +62,8 @@ auto generate_nodes(tbb::flow::graph& g,
 	std::map<std::string, std::shared_ptr<tbb::flow::input_node<std::any>>> inputs;
 	std::map<std::string, std::shared_ptr<tbb::flow::function_node<std::any, std::any>>> transforms;
 	std::map<std::string, std::shared_ptr<tbb::flow::function_node<std::any>>> sinks;
+	std::map<std::string, std::shared_ptr<tbb::flow::multifunction_node<std::tuple<std::string, std::any>,
+		std::tuple<std::map<std::string,std::any>>>>> joins;
 
 	//first start by creating tbb nodes
 	for (const auto& node : pipeline_desc.m_nodes)
@@ -82,13 +85,14 @@ auto generate_nodes(tbb::flow::graph& g,
 		}
 		else if (node->m_type == "function_node")
 		{
+			//join nodes have the same signature as a transform
 			auto transform = tranform_funcs.at(node->m_transform);
 			transforms.insert({ node->m_name, std::make_shared<tbb::flow::function_node<std::any, std::any>>(g,
 				node->m_concurrency,
 				[transform](auto args) {
 					return (*transform)(args);
-				}) });
-
+				}) 
+			});
 		}
 		else if (node->m_type == "sink_node")
 		{
@@ -97,7 +101,28 @@ auto generate_nodes(tbb::flow::graph& g,
 				node->m_concurrency,
 				[transform](auto args) {
 					(*transform)(args);
-				}) });
+				}) 
+			});
+		}
+		else if (node->m_type == "join_node")
+		{
+			//create a join transform that encapsulates the input nodes of the join node
+			std::vector<std::string> input_ports;
+			for (const auto& port : node->m_inputs)
+			{
+				input_ports.push_back(port->m_name);
+			}
+			
+			auto transform = join_functor(input_ports);
+			joins.insert({ node->m_name, std::make_shared <
+			tbb::flow::multifunction_node<
+					std::tuple<std::string, std::any>,
+					std::tuple<
+						std::map<std::string,std::any>
+						>
+					>
+				>(g, node->m_concurrency, transform)
+			});
 		}
 		else
 		{
@@ -130,7 +155,11 @@ pipeline_impl::pipeline_impl(
 {
 	auto [sources, transforms, sinks] = generate_nodes(m_pimpl->graph, 
 		desc, sourc_funcs, tranform_funcs, sink_funcs);
+
 	connect_edges(desc, sources, transforms, sinks);
+	
+	//generate join nodes
+
 	m_pimpl->inputs = sources;
 	m_pimpl->transforms = transforms;
 	m_pimpl->sinks = sinks;
