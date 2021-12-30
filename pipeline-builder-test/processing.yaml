@@ -12,32 +12,24 @@ pipelines :
                 input_ports : []
                 output_ports : [source_1_output] #sources have no input ports
             node_2 :
-                type : function_node
-                transform : transform_1
+                type : split_node
+                transform : "sink_1"
                 concurrency : 0 #infinite
                 input_ports : [node_2_input]
-                output_ports : [node_2_output]
+                output_ports : [one,two]
             node_3 :
                 type : sink_node
-                transform : sink_1 # we allow nexted pipelines
+                transform : "sink_1"
                 concurrency : 1 #serial
-                input_ports : [node_3_input]
+                input_ports : [node_3_input_0]
                 output_ports : []
-            # node_4 :
-                # type : function_node
-                # transform : transform_3
-                # concurrency : 1 #serial
-                # input_ports : [node_4_input]
-                # output_ports : [node_4_output]
-            # node_5 :
-                # type : sink_node
-                # transform : sink_func
-                # concurrency : 1 #serial
-                # input_ports : [node_5_input]
-            # node_6:
-                # type : join_node
-                # input_ports : [node_6_input_0, node_6_input_1]
-                # output_ports : [node_6_output]
+                
+            node_5 :
+                type : sink_node
+                transform : "sink_2"
+                concurrency : 1 #serial
+                input_ports : [node_5_input]
+                output_ports : []
                 
         edges :
             #Sequencial connection
@@ -46,11 +38,11 @@ pipelines :
                 end : node_2_input
             #trigger nodes 3 and 4 from 2
             edge_2 :
-                start : node_2_output
-                end : node_3_input
-            # edge_3 :
-                # parent : node_2_output
-                # child : node_4_input
+                start : one
+                end : node_3_input_0
+            edge_3 :
+                start : two
+                end : node_5_input
             # edge_4 :
                 # parent : node_4_output
                 # child : node_6_input_0

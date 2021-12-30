@@ -27,15 +27,15 @@
     <ClCompile Include="pipeline_impl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="split_node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pipeline_factory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pipeline_impl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="split_node.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="join_node.h">
@@ -51,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DLLMacro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="split_node.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
