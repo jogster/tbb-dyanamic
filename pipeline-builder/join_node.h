@@ -5,55 +5,47 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <any>
 
-template<typename Input, typename Output>
 class join_functor
 {
 public:
-	join_functor(std::string name, std::vector<std::string> inputs) : m_name(name)
+	join_functor(std::vector<std::string> inputs)
 	{
-
+		for (auto input : inputs)
+		{
+			tbb::concurrent_queue<std::any> buf;
+			m_buffer.insert({ input, buf});
+		}
 	}
 	template<typename OutputPortsType>
-	operator()(const std::pair<std::string, Input>& in, OutputPortsType& p)
+	void operator()(const std::tuple<std::any>& in, OutputPortsType& p)
 	{
+		auto input_casted = std::any_cast<std::tuple<std::string, std::any>>(std::get<0>(in));
+
 		//save the data to the buffer
-		m_buffer.at(in.first).push_back(in.second);
+		m_buffer.at(std::get<0>(input_casted)).push(std::get<1>(input_casted));
 		
 		//loop through the buffer and check if all our buffers have at least one entry
 		if (std::all_of(std::begin(m_buffer), std::end(m_buffer), [](const auto& buff) {
-			return !buff.empty();
+			return !buff.second.empty();
 		}))
 		{
-			std::vector<Output> output_data;
+			std::map<std::string, std::any> output_data;
 			for (auto& buffer : m_buffer)
 			{
-				Output temp;
-				if (!buffer.try_pop(temp))
+				std::any temp;
+				if (!buffer.second.try_pop(temp))
 				{
 					throw std::exception("join node failed");
 				}
 				
-				output_data.push_back(temp);
+				output_data.insert({buffer.first, temp });
 			}
-			std::get<0>(p).try_put({m_name, output_data});
+			std::get<0>(p).try_put(output_data);
 		}
 	}
 
 private:
-	tbb::concurrent_map<std::string, tbb::concurrent_queue<Input>> m_buffer;
-	std::string m_name;
-};
-
-template<typename Input, typename Output>
-class join_node : public tbb::flow::multifunction_node<std::pair<std::string, Input>, 
-		std::tuple<std::pair<std::string, std::vector<Output>>>>
-{
-public:
-	join_node(std::string name, std::vector<std::string> inputs,
-		std::tbb::flow::graph g) : 
-		tbb::flow::multifunction_node<InputType, OutputType>(g, join_functor(name, inputs))
-	{
-
-	}
+	tbb::concurrent_map<std::string, tbb::concurrent_queue<std::any>> m_buffer;
 };

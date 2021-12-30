@@ -49,3 +49,9 @@ std::shared_ptr<pipeline_impl> pipeline_factory::getPipeline(
 		sink_funcs
 	);
 }
+
+
+std::shared_ptr<pipeline_factory> getPipelineFactory(std::filesystem::path config)
+{
+	return std::make_shared<pipeline_factory>(config);
+}

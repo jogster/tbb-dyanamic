@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../test-filter/DLLMacro.h"
+#include "DLLMacro.h"
 
 #include <memory>
 #include <filesystem>
