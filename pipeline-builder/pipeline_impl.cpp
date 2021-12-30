@@ -3,8 +3,9 @@
 
 #include "pipeline_impl.h"
 #include "join_node.h"
+#include "split_node.h"
 
-// helper type for the visitor #4
+// overloaded pattern
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 // explicit deduction guide (not needed as of C++20)
 template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
@@ -13,10 +14,11 @@ using variant_collection =  std::variant<
 							std::map<std::string, std::shared_ptr<tbb::flow::input_node<std::any>>>,
 							std::map<std::string, std::shared_ptr<tbb::flow::function_node<std::any, std::any>>>,
 							std::map<std::string, std::shared_ptr<tbb::flow::function_node<std::any>>>,
-							std::map<std::string, std::shared_ptr<tbb::flow::multifunction_node<std::any, std::tuple<std::any>>>>>;
+							std::map<std::string, std::shared_ptr<tbb::flow::multifunction_node<std::any, std::tuple<std::any>>>>,
+							std::map<std::string, std::shared_ptr<tbb::flow::broadcast_node<std::any>>>>;
 
 //We need to add an few extra parts to the graph to decorate the data
-//so that we can sort the data comping into the join node
+//so that we can sort the data coming into the join/split nodes
 //and know when all our buffers are full
 
 pipeline_desc decorate_description(const pipeline_desc& desc)
@@ -69,6 +71,39 @@ pipeline_desc decorate_description(const pipeline_desc& desc)
 					if (edge->m_term == port)
 					{
 						edge->m_term = port_input;
+					}
+				}
+			}
+		}
+
+		if (node->m_type == "split_node")
+		{
+			//create source nodes from the split node to the 
+			//reset of the graph
+
+			//create a node for each port
+			for (const auto& port : node->m_outputs)
+			{
+				//create a nodes 
+				auto export_port = std::make_shared<port_desc>(port->m_name);
+				auto new_node = std::make_shared<node_desc>(
+					port->m_name,
+					std::vector<std::shared_ptr<port_desc>>({}),
+					std::vector<std::shared_ptr<port_desc>>({ export_port }),
+					"broadcast_node", 1, "");
+
+				//move the nodes into the desc
+				ret.m_nodes.push_back(new_node);
+				//we won't remove the output ports on the broacast node
+				//because they will represent the broadcast nodes stored within
+				//the body of the split node.
+
+				//move the edge from the 
+				for (const auto& edge : desc.m_edges)
+				{
+					if (edge->m_origin == port)
+					{
+						edge->m_origin = export_port;
 					}
 				}
 			}
@@ -130,7 +165,10 @@ void connect_edges(
 									//we cannot have the start of an edge be a sink
 									std::is_same<decltype(start),std::map<std::string, std::shared_ptr<tbb::flow::function_node<std::any>>>>::value ||
 									//we cannot have the end of an edge be a source
-									std::is_same<std::map<std::string, std::shared_ptr<tbb::flow::input_node<std::any>>>, decltype(end)>::value)
+									std::is_same<std::map<std::string, std::shared_ptr<tbb::flow::input_node<std::any>>>, decltype(end)>::value ||
+									//you may be able to logically push to broadcast nodes in TBB,
+									//but the way we use them it will not work
+									std::is_same<std::map<std::string, std::shared_ptr<tbb::flow::broadcast_node<std::any>>>, decltype(end)>::value)
 								{
 									//do nothing these combinations don't create valid code
 								}
@@ -157,6 +195,17 @@ auto generate_nodes(tbb::flow::graph& g,
 	std::map<std::string, std::shared_ptr<tbb::flow::function_node<std::any>>> sinks;
 	std::map<std::string, std::shared_ptr<tbb::flow::multifunction_node<std::any,
 		std::tuple<std::any>>>> joins;
+	std::map<std::string, std::shared_ptr<tbb::flow::broadcast_node<std::any>>> broadcasts;
+
+	//do a first pass to generate all the broadcast nodes
+	for (const auto& node : pipeline_desc.m_nodes)
+	{
+		if (node->m_type == "broadcast_node")
+		{
+			broadcasts.insert({ node->m_name,
+				std::make_shared<tbb::flow::broadcast_node<std::any>>(g) });
+		}
+	}
 
 	//first start by creating tbb nodes
 	for (const auto& node : pipeline_desc.m_nodes)
@@ -247,12 +296,38 @@ auto generate_nodes(tbb::flow::graph& g,
 				})
 			});
 		}
+		else if (node->m_type == "split_node")
+		{
+			std::map<std::string, std::shared_ptr<tbb::flow::broadcast_node<std::any>>> broadcast_nodes;
+			//create a function node that captures 
+			
+			std::for_each(std::begin(node->m_outputs), std::end(node->m_outputs), [&](auto port)
+			{
+					//the broadcast nodes are already created now we can add them to
+					//the split node so it can split them up to the children
+				broadcast_nodes.insert({ port->m_name, broadcasts.at(port->m_name )});
+			});
+
+			split_functor split_func(broadcast_nodes);
+			//split nodes have the same signature as a sink... weird right
+			sinks.insert({ node->m_name, std::make_shared<tbb::flow::function_node<std::any>>(g,
+				node->m_concurrency,
+				split_func)
+			});
+
+			//save the nodes
+			broadcasts.insert(std::begin(broadcast_nodes), std::end(broadcast_nodes));
+		}
+		else if (node->m_type == "broadcast_node")
+		{
+			//do nothing we got them in the first pass
+		}
 		else
 		{
 			throw std::exception("Unknown node type");
 		}
 	}
-	return std::make_tuple(inputs, transforms, sinks, joins);
+	return std::make_tuple(inputs, transforms, sinks, joins, broadcasts);
 }
 
 class pipeline_impl::impl
@@ -281,13 +356,14 @@ pipeline_impl::pipeline_impl(
 	//refine the pipeline description to something we can actually build
 	auto desc_decorated = decorate_description(desc);
 
-	auto [sources, transforms, sinks, joins] = generate_nodes(m_pimpl->graph, 
+	auto [sources, transforms, sinks, joins, broadcasts] = generate_nodes(m_pimpl->graph, 
 		desc_decorated, sourc_funcs, tranform_funcs, sink_funcs);
 
-	connect_edges(desc_decorated, { sources, transforms, sinks, joins });
+	connect_edges(desc_decorated, { sources, transforms, sinks, joins, broadcasts });
 	
 	//generate join nodes
-
+	//we dont need to save the broadcast nodes 
+	//they are saved inside the split nodes themselves
 	m_pimpl->inputs = sources;
 	m_pimpl->transforms = transforms;
 	m_pimpl->sinks = sinks;

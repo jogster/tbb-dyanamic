@@ -15,6 +15,7 @@
     <ClCompile Include="pipeline_impl.cpp" />
     <ClCompile Include="pipeline_parser.cpp" />
     <ClCompile Include="pipeline_factory.cpp" />
+    <ClCompile Include="split_node.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DLLMacro.h" />

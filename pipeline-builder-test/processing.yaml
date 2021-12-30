@@ -12,21 +12,21 @@ pipelines :
                 input_ports : []
                 output_ports : [source_1_output] #sources have no input ports
             node_2 :
-                type : input_node
-                transform : "source_2"
+                type : split_node
+                transform : "sink_1"
                 concurrency : 0 #infinite
-                input_ports : []
-                output_ports : [source_2_output]
+                input_ports : [node_2_input]
+                output_ports : [one,two]
             node_3 :
-                type : join_node
-                transform : sink_1 # we allow nexted pipelines
+                type : sink_node
+                transform : "sink_1"
                 concurrency : 1 #serial
-                input_ports : [node_3_input_0, node_3_input_1]
-                output_ports : [node_3_output]
+                input_ports : [node_3_input_0]
+                output_ports : []
                 
             node_5 :
                 type : sink_node
-                transform : sink_func
+                transform : "sink_2"
                 concurrency : 1 #serial
                 input_ports : [node_5_input]
                 output_ports : []
@@ -35,13 +35,13 @@ pipelines :
             #Sequencial connection
             edge_1 :
                 start : source_1_output
-                end : node_3_input_0
+                end : node_2_input
             #trigger nodes 3 and 4 from 2
             edge_2 :
-                start : source_2_output
-                end : node_3_input_1
+                start : one
+                end : node_3_input_0
             edge_3 :
-                start : node_3_output
+                start : two
                 end : node_5_input
             # edge_4 :
                 # parent : node_4_output
