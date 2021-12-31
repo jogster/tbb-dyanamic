@@ -151,6 +151,15 @@ void connect_edges(
 					});
 			});
 
+		if (end_node_it == std::end(_pipeline_desc.m_nodes))
+		{
+			throw std::exception("end not found");
+		}
+
+		if (start_node_it == std::end(_pipeline_desc.m_nodes))
+		{
+			throw std::exception("end not found");
+		}
 		
 		for (auto& var : variants)
 		{
